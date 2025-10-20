@@ -1,0 +1,16 @@
+
+name: runbook-rag-mvp-docx
+metadata:
+  template: runbook-rag-mvp-docx
+services:
+  api-py:
+    project: src/api-py
+    language: python
+    host: function
+  portal:
+    project: src/portal
+    language: js
+    host: staticwebapp
+infra:
+  path: infra
+  provider: bicep

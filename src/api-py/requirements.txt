@@ -1,0 +1,9 @@
+
+azure-functions
+azure-identity
+azure-search-documents==11.6.0
+azure-storage-blob
+openai>=1.40.0
+pymupdf
+numpy
+python-docx
