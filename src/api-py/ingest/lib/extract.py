@@ -9,8 +9,7 @@ def extract_text(data: bytes, filename: str) -> str:
         text = []
         for page in doc:
             text.append(page.get_text("text"))
-        return "
-".join(text)
+        return "".join(text)
     elif name.endswith(('.md', '.txt', '.log')):
         return data.decode('utf-8', errors='ignore')
     else:

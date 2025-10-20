@@ -68,11 +68,10 @@ def _build_docx(model_json: dict) -> Document:
             doc.add_heading(h, level=1)
         body = sec.get('body') or ''
         if body:
-            for para in body.split('
-'):
-                para = para.strip()
-                if para:
-                    doc.add_paragraph(para)
+            for para in body.split('\n'):
+             para = para.strip()
+    if para:
+        doc.add_paragraph(para)
         for lst in sec.get('lists') or []:
             for item in lst:
                 doc.add_paragraph(item, style='List Bullet')

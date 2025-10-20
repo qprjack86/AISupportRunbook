@@ -10,7 +10,7 @@ var tags = {
 
 // Storage for docs & runbooks
 resource stData 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: replace('st'+baseName, '-', '')[0..22]
+  name: substring(replace('st${baseName}', '-', ''), 0, 23)
   location: location
   sku: { name: 'Standard_LRS' }
   kind: 'StorageV2'
@@ -18,7 +18,8 @@ resource stData 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 }
 
 resource stData_blob 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
-  name: '${stData.name}/default'
+  name: 'default'
+  parent: stData
 }
 
 resource containerDocs 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
@@ -42,7 +43,10 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
   name: 'kv-${baseName}'
   location: location
   properties: {
-    sku: { family: 'A'; name: 'standard' }
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
     tenantId: subscription().tenantId
     enablePurgeProtection: true
     enableSoftDelete: true
@@ -62,18 +66,7 @@ resource search 'Microsoft.Search/searchServices@2023-11-01' = {
     partitionCount: 1
     replicaCount: 1
     disableLocalAuth: false
-    semanticSearch: {
-      configurations: [
-        {
-          name: 'default'
-          prioritizedFields: {
-            titleField: { fieldName: 'title' }
-            contentFields: [ { fieldName: 'text' } ]
-            keywordsFields: [ { fieldName: 'serviceArea' }, { fieldName: 'customerId' } ]
-          }
-        }
-      ]
-    }
+    semanticSearch: null
   }
   tags: tags
 }
@@ -93,14 +86,16 @@ resource aoai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 
 // OpenAI deployments
 resource depGpt 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
-  name: '${aoai.name}/gpt-4o-mini'
+  name: 'gpt-4o-mini'
+  parent: aoai
   properties: {
     model: { format: 'OpenAI', name: 'gpt-4o-mini', version: 'latest' }
     raiPolicyName: 'Microsoft.Default'
   }
 }
 resource depEmb 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
-  name: '${aoai.name}/text-embedding-3-small'
+  name: 'text-embedding-3-small'
+  parent: aoai
   properties: {
     model: { format: 'OpenAI', name: 'text-embedding-3-small', version: 'latest' }
     raiPolicyName: 'Microsoft.Default'
@@ -112,7 +107,7 @@ resource planPy 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: 'plan-py-${baseName}'
   location: location
   kind: 'functionapp'
-  sku: { name: 'Y1'; tier: 'Dynamic' }
+  sku: { name: 'Y1', tier: 'Dynamic' }
   tags: tags
 }
 
@@ -126,16 +121,16 @@ resource funcPy 'Microsoft.Web/sites@2022-09-01' = {
     serverFarmId: planPy.id
     siteConfig: {
       appSettings: [
-        { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'python' },
-        { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=' + stData.name + ';AccountKey=' + stData.listKeys().keys[0].value + ';EndpointSuffix=core.windows.net' },
-        { name: 'DATA_STORAGE_CONNECTION', value: 'DefaultEndpointsProtocol=https;AccountName=' + stData.name + ';AccountKey=' + stData.listKeys().keys[0].value + ';EndpointSuffix=core.windows.net' },
-        { name: 'DOCS_CONTAINER', value: 'docs' },
-        { name: 'RUNBOOKS_CONTAINER', value: 'runbooks' },
-        { name: 'SEARCH_ENDPOINT', value: 'https://${search.name}.search.windows.net' },
-        { name: 'SEARCH_INDEX', value: 'support-docs' },
-        { name: 'AOAI_ENDPOINT', value: 'https://${aoai.properties.customSubDomainName}.openai.azure.com' },
-        { name: 'AOAI_DEPLOYMENT', value: 'gpt-4o-mini' },
-        { name: 'EMBED_DEPLOYMENT', value: 'text-embedding-3-small' },
+        { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'python' }
+        { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${stData.name};AccountKey=${stData.listKeys().keys[0].value};EndpointSuffix=core.windows.net' }
+        { name: 'DATA_STORAGE_CONNECTION', value: 'DefaultEndpointsProtocol=https;AccountName=${stData.name};AccountKey=${stData.listKeys().keys[0].value};EndpointSuffix=core.windows.net' }
+        { name: 'DOCS_CONTAINER', value: 'docs' }
+        { name: 'RUNBOOKS_CONTAINER', value: 'runbooks' }
+        { name: 'SEARCH_ENDPOINT', value: 'https://${search.name}.search.windows.net' }
+        { name: 'SEARCH_INDEX', value: 'support-docs' }
+        { name: 'AOAI_ENDPOINT', value: 'https://${aoai.properties.customSubDomainName}.openai.azure.com' }
+        { name: 'AOAI_DEPLOYMENT', value: 'gpt-4o-mini' }
+        { name: 'EMBED_DEPLOYMENT', value: 'text-embedding-3-small' }
         { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appi.properties.InstrumentationKey }
       ]
       linuxFxVersion: 'Python|3.10'
@@ -166,7 +161,7 @@ resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
 
 // RBAC assignments
 resource roleBlobPy 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: newGuid()
+  name: guid(stData.id, funcPy.id, 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
   scope: stData
   properties: {
     principalId: funcPy.identity.principalId
@@ -174,7 +169,7 @@ resource roleBlobPy 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 resource roleSearch 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: newGuid()
+  name: guid(search.id, funcPy.id, '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
   scope: search
   properties: {
     principalId: funcPy.identity.principalId
@@ -182,7 +177,7 @@ resource roleSearch 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 resource roleAOAI 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: newGuid()
+  name: guid(aoai.id, funcPy.id, '3f88fce2-fbea-4b41-8f87-8821b88348b5')
   scope: aoai
   properties: {
     principalId: funcPy.identity.principalId
@@ -190,7 +185,7 @@ resource roleAOAI 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 resource roleKV 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: newGuid()
+  name: guid(kv.id, funcPy.id, '4633458b-17de-408a-b874-0445c86b69e6')
   scope: kv
   properties: {
     principalId: funcPy.identity.principalId

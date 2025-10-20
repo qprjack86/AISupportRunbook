@@ -4,7 +4,7 @@
 Azure-native Retrieval Augmented Generation MVP to generate all-levels support runbooks from documents stored in **Azure Blob Storage**.  
 **Output: Word (.docx) only**.
 
-Pilot: **PPF Group** across **ASR, AVD, LandingZone**.
+Pilot: **Across **ASR, AVD, LandingZone**.
 
 ## Quick start (with `azd`)
 
@@ -14,7 +14,7 @@ azd auth login
 az account set --subscription "<SUBSCRIPTION_ID>"
 
 # 2) Initialise environment
-azd env new ppf-mvp-uksouth
+azd env new rag-mvp-uksouth
 
 # 3) Deploy infra + apps
 azd up

@@ -15,23 +15,17 @@ provider = get_bearer_token_provider(cred, "https://cognitiveservices.azure.com/
 aoai = AzureOpenAI(azure_endpoint=AOAI_ENDPOINT, api_version="2024-06-01", azure_ad_token_provider=provider)
 
 def chunk_text(text: str, target_words=350):
-    paras = [p.strip() for p in text.split('
-
-') if p.strip()]
+    paras = [p.strip() for p in text.split('') if p.strip()]
     chunk, wc = [], 0
     for p in paras:
         w = len(p.split())
         if wc + w > target_words and chunk:
-            yield "
-
-".join(chunk)
+            yield "".join(chunk)
             chunk, wc = [], 0
         chunk.append(p)
         wc += w
     if chunk:
-        yield "
-
-".join(chunk)
+        yield "".join(chunk)
 
 
 def embed(texts: list[str]) -> list[list[float]]:
