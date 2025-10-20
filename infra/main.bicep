@@ -8,9 +8,14 @@ var tags = {
   system: 'runbook-rag-mvp-docx'
 }
 
+
+var stBase = toLower(replace('st${baseName}', '-', ''))
+var stName = take(stBase, 24)  // cap at 24 chars safely
+
+
 // Storage for docs & runbooks
 resource stData 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: substring(replace('st${baseName}', '-', ''), 0, 23)
+  name: stName
   location: location
   sku: { name: 'Standard_LRS' }
   kind: 'StorageV2'
