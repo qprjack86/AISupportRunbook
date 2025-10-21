@@ -83,7 +83,7 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
     enabledForTemplateDeployment: true
     accessPolicies: []
     // If you want data‑plane RBAC, uncomment this:
-    // enableRbacAuthorization: true
+    enableRbacAuthorization: true
   }
   tags: tags
 }
@@ -118,9 +118,9 @@ resource aoai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 
 resource depGpt 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
   parent: aoai
-  name: 'gpt-4o-mini'
+  name: 'gpt-5-mini'
   properties: {
-    model: { format: 'OpenAI', name: 'gpt-4o-mini', version: 'latest' }
+    model: { format: 'OpenAI', name: 'gpt-5-mini', version: '2025-08-07' }
     raiPolicyName: 'Microsoft.Default'
   }
 }
