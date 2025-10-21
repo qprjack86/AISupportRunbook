@@ -1,22 +1,86 @@
-
 {
   "name": "support-docs",
   "fields": [
-    { "name": "id", "type": "Edm.String", "key": true, "filterable": false, "searchable": false },
-    { "name": "customerId", "type": "Edm.String", "filterable": true, "facetable": true, "searchable": false },
-    { "name": "serviceArea", "type": "Edm.String", "filterable": true, "facetable": true, "searchable": false },
-    { "name": "title", "type": "Edm.String", "searchable": true },
-    { "name": "sourceUrl", "type": "Edm.String", "searchable": false, "retrievable": true },
-    { "name": "docType", "type": "Edm.String", "filterable": true },
-    { "name": "version", "type": "Edm.String" },
-    { "name": "effectiveDate", "type": "Edm.DateTimeOffset", "filterable": true },
-    { "name": "text", "type": "Edm.String", "searchable": true },
-    { "name": "chunkId", "type": "Edm.Int32" },
-    { "name": "hash", "type": "Edm.String" },
-    { "name": "vector", "type": "Collection(Edm.Single)", "searchable": false, "retrievable": true, "dimensions": 1536, "vectorSearchProfile": "default" }
+    {
+      "name": "id",
+      "type": "Edm.String",
+      "key": true,
+      "filterable": false,
+      "searchable": false
+    },
+    {
+      "name": "customerId",
+      "type": "Edm.String",
+      "filterable": true,
+      "facetable": true,
+      "searchable": false
+    },
+    {
+      "name": "serviceArea",
+      "type": "Edm.String",
+      "filterable": true,
+      "facetable": true,
+      "searchable": false
+    },
+    {
+      "name": "title",
+      "type": "Edm.String",
+      "searchable": true
+    },
+    {
+      "name": "sourceUrl",
+      "type": "Edm.String",
+      "searchable": false,
+      "retrievable": true
+    },
+    {
+      "name": "docType",
+      "type": "Edm.String",
+      "filterable": true
+    },
+    {
+      "name": "version",
+      "type": "Edm.String"
+    },
+    {
+      "name": "effectiveDate",
+      "type": "Edm.DateTimeOffset",
+      "filterable": true
+    },
+    {
+      "name": "text",
+      "type": "Edm.String",
+      "searchable": true
+    },
+    {
+      "name": "chunkId",
+      "type": "Edm.Int32"
+    },
+    {
+      "name": "hash",
+      "type": "Edm.String"
+    },
+    {
+      "name": "vector",
+      "type": "Collection(Edm.Single)",
+      "searchable": false,
+      "retrievable": true,
+      "dimensions": 1536,
+      "vectorSearchProfile": "default"
+    }
   ],
   "vectorSearch": {
-    "algorithms": [ { "name": "hnsw", "kind": "hnsw" } ],
-    "profiles": [ { "name": "default", "algorithm": "hnsw" } ]
+    "algorithms": [
+      {
+        "name": "hnsw",
+        "kind": "hnsw"
+      }
+    ],
+    "profiles": [
+      {
+        "name": "default",
+        "algorithm": "hnsw"
+      }
+    ]
   }
 }

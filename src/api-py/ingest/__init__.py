@@ -8,8 +8,6 @@ from .lib.indexer import index_chunks
 ST_CONN = os.environ["DATA_STORAGE_CONNECTION"]
 DOCS_CONTAINER = os.getenv("DOCS_CONTAINER", "docs")
 
-blob_svc = BlobServiceClient.from_connection_string(ST_CONN)
-
 app = func.FunctionApp()
 
 @app.function_name(name="ingest")
@@ -18,11 +16,10 @@ def run(blob: func.InputStream):
     name = blob.name
     logging.info(f"[ingest] Processing: {name} ({blob.length} bytes)")
 
-    # Expect path: docs/<customerId>/<serviceArea>/raw/<filename>
     try:
         _, customerId, serviceArea, folder, filename = name.split('/', 4)
     except ValueError:
-        logging.warning(f"[ingest] Skipping unexpected path: {name}")
+        logging.warning(f"[ingest] Unexpected path: {name}")
         return
 
     if folder != 'raw':
@@ -30,7 +27,7 @@ def run(blob: func.InputStream):
         return
 
     text = extract_text(blob.read(), filename)
-    if not text or len(text.strip()) == 0:
+    if not text.strip():
         logging.warning("[ingest] No text extracted")
         return
 

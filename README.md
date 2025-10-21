@@ -1,48 +1,50 @@
 
-# Runbook RAG MVP (Option B) — UK South
+# Runbook RAG MVP (Option B) — UK South (Static Website + DOCX)
 
 Azure-native Retrieval Augmented Generation MVP to generate all-levels support runbooks from documents stored in **Azure Blob Storage**.  
-**Output: Word (.docx) only**.
+**Primary output:** Word **.docx** (plus optional PDF).  
+Pilot: **PPF Group** across **ASR, AVD, LandingZone**.
 
-Pilot: **Across **ASR, AVD, LandingZone**.
+This variant uses **Storage Static Website** (not Static Web Apps) so everything runs in **UK South**.
 
 ## Quick start (with `azd`)
 
 ```bash
-# 1) Prerequisites
 azd auth login
 az account set --subscription "<SUBSCRIPTION_ID>"
 
-# 2) Initialise environment
-azd env new rag-mvp-uksouth
+azd env new ppf-mvp-uksouth
+azd up        # provisions all Azure resources EXCEPT the portal site deploy
 
-# 3) Deploy infra + apps
-azd up
+# build & upload portal to $web
+./scripts/deploy-portal.sh $(azd env get-values | grep AZURE_RESOURCE_GROUP | cut -d'=' -f2)
 ```
-
-> Region is pinned to **UK South** by default. Adjust in `infra/main.bicep` if needed.
 
 ## What gets deployed
-- Storage (containers: `docs`, `runbooks`)
-- Python Azure Functions (blob ingest + HTTP generate + SAS), Managed Identity
+- Storage (containers: `docs`, `runbooks`, and **$web** for the portal)
+- Blob Static Website enabled (serves the portal)
+- Two Function Apps (Python pipeline + Node converters) with Managed Identity
 - Azure AI Search (vector enabled)
 - Azure OpenAI (deployments: `gpt-4o-mini`, `text-embedding-3-small`)
-- Static Web App (portal)
 - Key Vault + App Insights
 
-## Portal dev
-```bash
-cd src/portal
-npm install
-npm run dev
+## Outputs
+- `runbooks/<customer>/<service>/<timestamp>/runbook.docx` (primary)
+- `runbooks/.../runbook.md` (source)
+- `runbooks/.../runbook.pdf` (optional)
+
+## Portal configuration
+Create `src/portal/.env`:
+```ini
+VITE_API_PY_BASE=https://<func-py-name>.azurewebsites.net
+VITE_API_NODE_BASE=https://<func-node-name>.azurewebsites.net
+VITE_PY_CODE=<function key>
+VITE_NODE_CODE=<function key>
 ```
 
-## Flow (DOCX only)
-1. Portal requests a **SAS** for `docs/{customerId}/{serviceArea}/raw/`
-2. Browser uploads directly to Blob (no duplicates)
-3. **Blob Trigger** extracts → chunks → embeds → indexes in AI Search
-4. Click **Generate Runbook** → Function retrieves chunks → calls Azure OpenAI → builds **runbook.docx** → saves to Blob
+Then deploy the portal with `scripts/deploy-portal.sh` (builds and uploads to `$web`).
 
 ## Notes
-- Azure OpenAI model names/versions vary by region/tenant; adjust in `infra/main.bicep` if deployments fail.
-- Search index can be created via `scripts/postprovision.ps1`.
+- AOAI auth uses Managed Identity; no API keys stored.
+- If model deployments fail in your region/tenant, adjust names/region in `infra/main.bicep`.
+- CORS for Function Apps is configured to allow the static website origin.

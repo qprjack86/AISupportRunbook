@@ -1,0 +1,12 @@
+{
+  "name": "md-funcs",
+  "version": "0.2.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/storage-blob": "^12.16.0",
+    "markdown-it": "^14.1.0",
+    "playwright-chromium": "^1.48.0",
+    "html-docx-js": "^0.4.0"
+  }
+}

@@ -4,7 +4,6 @@ import azure.functions as func
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions, BlobServiceClient
 
 ST_CONN = os.environ["DATA_STORAGE_CONNECTION"]
-svc = BlobServiceClient.from_connection_string(ST_CONN)
 DOCS_CONTAINER = os.getenv("DOCS_CONTAINER", "docs")
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)

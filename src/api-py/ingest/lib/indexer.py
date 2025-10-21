@@ -11,21 +11,27 @@ EMBED_DEPLOYMENT = os.environ.get("EMBED_DEPLOYMENT", "text-embedding-3-small")
 
 search = SearchClient(endpoint=SEARCH_ENDPOINT, index_name=SEARCH_INDEX, credential=DefaultAzureCredential())
 cred = DefaultAzureCredential()
-provider = get_bearer_token_provider(cred, "https://cognitiveservices.azure.com/.default")
-aoai = AzureOpenAI(azure_endpoint=AOAI_ENDPOINT, api_version="2024-06-01", azure_ad_token_provider=provider)
+_token = get_bearer_token_provider(cred, "https://cognitiveservices.azure.com/.default")
+aoai = AzureOpenAI(azure_endpoint=AOAI_ENDPOINT, api_version="2024-06-01", azure_ad_token_provider=_token)
 
 def chunk_text(text: str, target_words=350):
-    paras = [p.strip() for p in text.split('') if p.strip()]
+    paras = [p.strip() for p in text.split('
+
+') if p.strip()]
     chunk, wc = [], 0
     for p in paras:
         w = len(p.split())
         if wc + w > target_words and chunk:
-            yield "".join(chunk)
+            yield "
+
+".join(chunk)
             chunk, wc = [], 0
         chunk.append(p)
         wc += w
     if chunk:
-        yield "".join(chunk)
+        yield "
+
+".join(chunk)
 
 
 def embed(texts: list[str]) -> list[list[float]]:

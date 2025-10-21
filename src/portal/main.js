@@ -2,11 +2,14 @@
 import axios from 'axios';
 
 const apiPyBase = import.meta.env.VITE_API_PY_BASE || '';
+const apiNodeBase = import.meta.env.VITE_API_NODE_BASE || '';
+const PY_CODE = import.meta.env.VITE_PY_CODE || '';
+const NODE_CODE = import.meta.env.VITE_NODE_CODE || '';
 
 const el = document.getElementById('app');
 
 el.innerHTML = `
-  <h1>Runbook RAG MVP — DOCX</h1>
+  <h1>Runbook RAG MVP</h1>
   <section>
     <label>Customer ID <input id="cust" value="ppf-group"/></label>
     <label>Service Area
@@ -20,7 +23,7 @@ el.innerHTML = `
     <button id="upload">Upload</button>
   </section>
   <section>
-    <button id="generate">Generate Runbook (DOCX)</button>
+    <button id="generate">Generate Runbook</button>
   </section>
   <pre id="out"></pre>
 `;
@@ -32,7 +35,7 @@ async function upload() {
   const file = fileEl.files[0];
   if (!file) return alert('Pick a file');
 
-  const sasRes = await axios.post(`${apiPyBase}/api/sas`, { customerId: cust, serviceArea: svc, fileName: file.name });
+  const sasRes = await axios.post(`${apiPyBase}/api/sas?code=${PY_CODE}`, { customerId: cust, serviceArea: svc, fileName: file.name });
   const url = sasRes.data.uploadUrl;
   await axios.put(url, file, { headers: { 'x-ms-blob-type': 'BlockBlob' } });
   document.getElementById('out').textContent = `Uploaded to ${url.split('?')[0]}`;
@@ -41,9 +44,18 @@ async function upload() {
 async function generate() {
   const cust = document.getElementById('cust').value;
   const svc = document.getElementById('svc').value;
-  const res = await axios.post(`${apiPyBase}/api/generate`, { customerId: cust, serviceArea: svc });
-  const docxPath = res.data.docxPath;
-  document.getElementById('out').textContent = JSON.stringify({ docxPath }, null, 2);
+  const res = await axios.post(`${apiPyBase}/api/generate?code=${PY_CODE}`, { customerId: cust, serviceArea: svc });
+  const mdPath = res.data.markdownPath;
+
+  // DOCX (primary)
+  const docxRes = await axios.post(`${apiNodeBase}/api/md2docx?code=${NODE_CODE}`, { markdownPath: mdPath.replace('runbooks/', '') });
+  const docxPath = `runbooks/${docxRes.data.docxPath}`;
+
+  // Optional PDF
+  const pdfRes = await axios.post(`${apiNodeBase}/api/md2pdf?code=${NODE_CODE}`, { markdownPath: mdPath.replace('runbooks/', '') });
+  const pdfPath = `runbooks/${pdfRes.data.pdfPath}`;
+
+  document.getElementById('out').textContent = JSON.stringify({ mdPath, docxPath, pdfPath }, null, 2);
 }
 
 document.getElementById('upload').onclick = upload;
