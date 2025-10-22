@@ -9,24 +9,40 @@ const NODE_CODE = import.meta.env.VITE_NODE_CODE || '';
 const el = document.getElementById('app');
 
 el.innerHTML = `
-  <h1>Runbook RAG MVP</h1>
-  <section>
-    <label>Customer ID <input id="cust" value="ppf-group"/></label>
-    <label>Service Area
-      <select id="svc">
-        <option>ASR</option>
-        <option selected>AVD</option>
-        <option>LandingZone</option>
-      </select>
-    </label>
-    <label>File <input id="file" type="file"/></label>
-    <button id="upload">Upload</button>
-  </section>
-  <section>
-    <button id="generate">Generate Runbook</button>
-  </section>
-  <pre id="out"></pre>
-`;
+   <h1>Runbook RAG MVP</h1>
+
+   <!-- Prompt Enhancement Section -->
+   <section class="enhance-section">
+     <h2>Enhance Prompt</h2>
+     <div class="enhance-container">
+       <label>Original Prompt</label>
+       <textarea id="original-prompt" placeholder="Enter your prompt here..." rows="4"></textarea>
+       <button id="enhance-btn">Enhance Prompt</button>
+       <label>Enhanced Prompt</label>
+       <textarea id="enhanced-prompt" placeholder="Enhanced prompt will appear here..." rows="4" readonly></textarea>
+     </div>
+   </section>
+
+   <hr>
+
+   <!-- Existing Upload Section -->
+   <section>
+     <label>Customer ID <input id="cust" value="ppf-group"/></label>
+     <label>Service Area
+       <select id="svc">
+         <option>ASR</option>
+         <option selected>AVD</option>
+         <option>LandingZone</option>
+       </select>
+     </label>
+     <label>File <input id="file" type="file"/></label>
+     <button id="upload">Upload</button>
+   </section>
+   <section>
+     <button id="generate">Generate Runbook</button>
+   </section>
+   <pre id="out"></pre>
+ `;
 
 async function upload() {
   const cust = document.getElementById('cust').value;
@@ -58,5 +74,25 @@ async function generate() {
   document.getElementById('out').textContent = JSON.stringify({ mdPath, docxPath, pdfPath }, null, 2);
 }
 
+async function enhancePrompt() {
+   const originalPrompt = document.getElementById('original-prompt').value.trim();
+   if (!originalPrompt) {
+     alert('Please enter a prompt to enhance');
+     return;
+   }
+
+   try {
+     const response = await axios.post(`${apiPyBase}/api/enhance-prompt?code=${PY_CODE}`, {
+       prompt: originalPrompt
+     });
+
+     document.getElementById('enhanced-prompt').value = response.data.enhancedPrompt;
+   } catch (error) {
+     console.error('Error enhancing prompt:', error);
+     alert('Failed to enhance prompt. Please try again.');
+   }
+}
+
 document.getElementById('upload').onclick = upload;
 document.getElementById('generate').onclick = generate;
+document.getElementById('enhance-btn').onclick = enhancePrompt;

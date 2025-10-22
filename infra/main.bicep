@@ -118,9 +118,9 @@ resource aoai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 
 resource depGpt 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
   parent: aoai
-  name: 'gpt-5-mini'
+  name: 'gpt-4o-mini'
   properties: {
-    model: { format: 'OpenAI', name: 'gpt-5-mini', version: '2025-08-07' }
+    model: { format: 'OpenAI', name: 'gpt-4o-mini', version: '2024-07-18' }
     raiPolicyName: 'Microsoft.Default'
   }
 }
@@ -129,7 +129,7 @@ resource depEmb 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = 
   parent: aoai
   name: 'text-embedding-3-small'
   properties: {
-    model: { format: 'OpenAI', name: 'text-embedding-3-small', version: 'latest' }
+    model: { format: 'OpenAI', name: 'text-embedding-3-small', version: '1' }
     raiPolicyName: 'Microsoft.Default'
   }
 }
