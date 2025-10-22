@@ -34,26 +34,13 @@ resource stData 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 resource stData_blob 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
   parent: stData
   name: 'default'
-}
-
-resource staticWebsite 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-  name: '${stData.name}-staticwebsite'
-  location: location
-  kind: 'AzurePowerShell'
   properties: {
-    azPowerShellVersion: '11.0'
-    scriptContent: '''
-      $storageAccount = Get-AzStorageAccount -ResourceGroupName $env:resourceGroup -Name $env:storageAccountName
-      $ctx = $storageAccount.Context
-      Enable-AzStorageStaticWebsite -Context $ctx -IndexDocument index.html -ErrorDocument404Path index.html
-    '''
-    environmentVariables: [
-      { name: 'resourceGroup', value: resourceGroup().name }
-      { name: 'storageAccountName', value: stData.name }
-    ]
-    retentionInterval: 'PT1H'
+    isStaticWebsiteEnabled: true
+    indexDocument: 'index.html'
+    errorDocument404Path: 'index.html'
   }
 }
+
 
 resource containerDocs 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
   name: '${stData.name}/default/docs'
@@ -106,7 +93,7 @@ resource search 'Microsoft.Search/searchServices@2023-11-01' = {
 // Azure OpenAI
 resource aoai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: aoaiName
-  location: location
+  location: 'eastus' // AOAI is only in certain regions
   sku: { name: 'S0' }
   kind: 'OpenAI'
   properties: {
@@ -172,7 +159,7 @@ resource funcPy 'Microsoft.Web/sites@2022-09-01' = {
         { name: 'EMBED_DEPLOYMENT', value: 'text-embedding-3-small' }
         { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appi.properties.InstrumentationKey }
       ]
-      linuxFxVersion: 'Python|3.10'
+      linuxFxVersion: 'PYTHON|3.10'
       cors: {
         allowedOrigins: [] // we add the static website origin post-deploy
       }
@@ -199,7 +186,7 @@ resource funcNode 'Microsoft.Web/sites@2022-09-01' = {
         { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appi.properties.InstrumentationKey }
         { name: 'PLAYWRIGHT_BROWSERS_PATH', value: '0' }
       ]
-      linuxFxVersion: 'Node|18'
+      linuxFxVersion: 'NODE|18'
       cors: { allowedOrigins: [] }
     }
     httpsOnly: true
